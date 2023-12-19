@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
+type comparePasswordFunction = (
+  candidatePassword: string,
+  cb: (err: Error | undefined, isMatch: boolean) => void
+) => void;
+
 export type UserDocument = mongoose.Document & {
   email: string;
   password: string;

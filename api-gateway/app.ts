@@ -9,6 +9,8 @@ import {
   productionErrors,
 } from './config/logging';
 import Passport from './middleware/passport';
+import loginController from './controllers/loginController';
+import registerController from './controllers/registerController';
 
 class App {
   public express: express.Application;
@@ -20,7 +22,7 @@ class App {
     this.express.use(successHandler);
     this.express.use(errorHandler);
     const passport = Passport();
-    passport.initialize();
+    this.express.use(passport.initialize());
     // Made our API gateway to authenticate the user before forwarding the request to the microservices
     this.express.use('/blogs', passport.authenticate(), (req, res, next) =>
       httpProxy('http://localhost:3001')(req, res, next)
@@ -39,12 +41,13 @@ class App {
   }
 
   private mountRoutes(): void {
-    const router = express.Router();
-    router.get('/', (req, res) => {
+    this.express.get('/', (req, res) => {
       res.json({
         message: 'Hello World! API gateway',
       });
     });
+    this.express.post('/login', loginController);
+    this.express.post('/register', registerController);
   }
 
   //   Method to start the server
