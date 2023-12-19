@@ -1,6 +1,13 @@
 import express from 'express';
 import httpProxy from 'express-http-proxy';
 import connectToMongoose from './config/mongoose';
+import {
+  successHandler,
+  errorHandler,
+  notFoundHandler,
+  developmentErrors,
+  productionErrors,
+} from './config/logging';
 import Passport from './middleware/passport';
 
 class App {
@@ -8,6 +15,10 @@ class App {
 
   constructor() {
     this.express = express();
+    this.express.use(express.json());
+    this.express.use(express.urlencoded({ extended: false }));
+    this.express.use(successHandler);
+    this.express.use(errorHandler);
     const passport = Passport();
     passport.initialize();
     // Made our API gateway to authenticate the user before forwarding the request to the microservices
@@ -19,6 +30,12 @@ class App {
     );
     connectToMongoose();
     this.mountRoutes();
+    if (process.env.NODE_ENV === 'development') {
+      this.express.use(developmentErrors);
+    } else {
+      this.express.use(productionErrors);
+    }
+    this.express.use(notFoundHandler);
   }
 
   private mountRoutes(): void {
